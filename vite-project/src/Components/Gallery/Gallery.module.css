@@ -7,7 +7,7 @@ header {
 
 header div {
   font-weight: 700;
-  font-size: 32px;
+  font-size: 40px;
 
   text-align: center;
 }
@@ -18,20 +18,20 @@ button:hover {
 }
 
 .galleryWrapper {
-  height: 100vh;
+  min-height: 100vh;
   max-width: 1200px;
 
-  margin: 0 auto;
+  margin: 20px auto 0 auto;
   padding: 20px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .gallery {
   display: flex;
   flex-wrap: wrap;
   gap: 24px;
-
-  height: 100vh;
-  margin: 0;
+  margin: 20px 0;
   padding: 0;
 }
 
@@ -50,12 +50,14 @@ button:hover {
   overflow: hidden;
 
   position: relative;
+  min-width: 0;
+  height: auto;
+  border: 2px solid transparent;
 }
 
 .galleryItem:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1;
 }
 
 .galleryItem:hover .temperament,
@@ -120,23 +122,44 @@ button:hover {
   height: 50px;
 
   display: flex;
+  padding: 13px 100px;
+  align-items: center;
+}
+
+select {
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  padding: 3px;
 }
 
 .favourites {
   margin-left: auto;
 }
 
+.favourites button {
+  padding: 5px 10px;
+  margin: 0 5px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 .favourites button.active {
-  background-color: #ff4757; /* Червоний колір для активного стану */
+  background-color: #ff4757;
   color: white;
-  transform: scale(1.05); /* Легке збільшення кнопки */
-  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3); /* Тінь з кольором кнопки */
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
 }
 
 .favouriteBtn.active {
-  color: #ff4757; /* Червоний колір для активного серця */
-  transform: scale(1.2); /* Збільшення іконки серця */
-  animation: heartBeat 0.3s ease-in-out; /* Анімація при кліку */
+  color: #ff4757;
+  transform: scale(1.2);
+  animation: heartBeat 0.3s ease-in-out;
 }
 
 @keyframes heartBeat {
@@ -154,6 +177,11 @@ button:hover {
 select:focus {
   border-color: #ff4757;
   outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.2);
+}
+
+.favoriteBorder {
+  border: 2px solid #ff4757;
   box-shadow: 0 0 0 2px rgba(255, 71, 87, 0.2);
 }
 
@@ -180,4 +208,141 @@ select:focus {
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  position: relative;
+  width: 90%;
+  max-width: 900px;
+  height: 90vh;
+  max-height: 620px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px 46px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalContent img {
+  width: 100%;
+  height: 90%;
+  display: block;
+  object-fit: cover;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 5px;
+  right: 11px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #333;
+}
+
+.closeBtn:hover {
+  color: #ff6b6b;
+}
+
+.modalPrev,
+.modalNext {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.modalPrev {
+  left: 4px;
+}
+
+.modalNext {
+  right: 4px;
+}
+
+.modalPrev:hover,
+.modalNext:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0;
+  background-color: #f8f8f8;
+  bottom: 0;
+  box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  max-width: 1200px;
+}
+
+.pagination button {
+  padding: 10px 20px;
+  margin: 0 5px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.pagination button:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.pagination button:disabled {
+  background-color: #ddd;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0 10px;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .galleryItem {
+    flex-basis: calc(50% - 16px);
+  }
+}
+
+@media (max-width: 425px) {
+  .galleryItem {
+    flex-basis: calc(100% - 16px);
+  }
+
+  .filter {
+    padding: 13px 15px;
+  }
 }

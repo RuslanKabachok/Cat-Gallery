@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import css from './Gallery.module.css';
+import Loader from '../Loader/Loader';
 
 function Gallery() {
   const [cats, setCats] = useState([]);
@@ -9,6 +10,10 @@ function Gallery() {
   const [selectedBreed, setSelectedBreed] = useState('');
   const [showFavorites, setShowFavorites] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCat, setSelectedCat] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const LIMIT = 12;
 
   useEffect(() => {
     async function fetchBreeds() {
@@ -27,8 +32,8 @@ function Gallery() {
     if (savedFavorites) {
       setFavCats(JSON.parse(savedFavorites));
     }
-    fetchRandomCats();
-  }, []);
+    fetchCatsByBreed(selectedBreed);
+  }, [currentPage, selectedBreed]);
 
   const toggleFavorite = (cat) => {
     setFavCats((prevFavs) => {
@@ -50,7 +55,9 @@ function Gallery() {
       let url = 'https://api.thecatapi.com/v1/images/search';
       const params = new URLSearchParams({
         limit: 12,
+        page: currentPage - 1,
         has_breeds: 1,
+        order: 'DESC',
       });
 
       if (breedId) {
@@ -66,8 +73,10 @@ function Gallery() {
             'live_iaAOnvzBcCLSq3YnMc5rp2mq3MWxDBMPjTxxBIa4VefaMX3KZfxUREophgjP6862',
         },
       });
-
       setCats(response.data);
+
+      const totalCountHeader = response.headers['pagination-count'];
+      setTotalResults(totalCountHeader ? parseInt(totalCountHeader, 10) : 0);
     } catch (error) {
       console.error('Error searching cats:', error);
     } finally {
@@ -79,43 +88,93 @@ function Gallery() {
     const breedId = e.target.value;
     setSelectedBreed(breedId);
     fetchCatsByBreed(breedId);
-    console.log(cats);
+    setCurrentPage(1);
   };
 
-  const fetchRandomCats = async () => {
-    setIsLoading(true);
+  //   setIsLoading(true);
 
-    try {
-      const params = new URLSearchParams({
-        limit: 12,
-        has_breeds: 1,
-      });
+  //   try {
+  //     const params = new URLSearchParams({
+  //       limit: 12,
+  //       has_breeds: 1,
+  //       page: currentPage,
+  //     });
 
-      const response = await axios.get(
-        `https://api.thecatapi.com/v1/images/search?${params.toString()}`,
-        {
-          headers: {
-            'x-api-key':
-              'live_iaAOnvzBcCLSq3YnMc5rp2mq3MWxDBMPjTxxBIa4VefaMX3KZfxUREophgjP6862',
-          },
-        }
-      );
+  //     const response = await axios.get(
+  //       `https://api.thecatapi.com/v1/images/search?${params.toString()}`,
+  //       {
+  //         headers: {
+  //           'x-api-key':
+  //             'live_iaAOnvzBcCLSq3YnMc5rp2mq3MWxDBMPjTxxBIa4VefaMX3KZfxUREophgjP6862',
+  //         },
+  //       }
+  //     );
 
-      setCats(response.data);
-    } catch (error) {
-      console.error('Error fetching random cats:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  //     setCats(response.data);
+  //   } catch (error) {
+  //     console.error('Error fetching random cats:', error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  const openModal = (cat) => {
+    setSelectedCat(cat);
+  };
+
+  const closeModal = () => {
+    setSelectedCat(null);
   };
 
   const filteredCats = showFavorites ? favCats : cats;
+
+  function updateModalImage(index) {
+    const currentIndex = filteredCats.findIndex(
+      (cat) => cat.id === selectedCat.id
+    );
+    const newIndex =
+      (currentIndex + index + filteredCats.length) % filteredCats.length;
+    setSelectedCat(filteredCats[newIndex]);
+  }
 
   return (
     <>
       <header>
         <div>Cat Gallery</div>
       </header>
+      {isLoading && <Loader />}
+      {selectedCat && (
+        <div className={css.modalOverlay} onClick={closeModal}>
+          <div
+            className={css.modalContent}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={selectedCat.url}
+              alt={selectedCat.breeds[0]?.name || 'Cat'}
+            />
+            <button
+              className={css.modalPrev}
+              onClick={() => {
+                updateModalImage(-1);
+              }}
+            >
+              &lt;
+            </button>
+            <button
+              className={css.modalNext}
+              onClick={() => {
+                updateModalImage(1);
+              }}
+            >
+              &gt;
+            </button>
+            <button className={css.closeBtn} onClick={closeModal}>
+              ✖
+            </button>
+          </div>
+        </div>
+      )}
       <div className={css.galleryWrapper}>
         <div className={css.filter}>
           <div>
@@ -148,7 +207,12 @@ function Gallery() {
             const isFavorite = favCats.some((favCat) => favCat.id === cat.id);
 
             return (
-              <li key={cat.id} className={css.galleryItem}>
+              <li
+                key={cat.id}
+                className={`${css.galleryItem} ${
+                  isFavorite ? css.favoriteBorder : ''
+                }`}
+              >
                 <div className={css.favouriteBox}>
                   <button
                     className={`${css.favouriteBtn} ${
@@ -162,15 +226,19 @@ function Gallery() {
                 <img
                   src={cat.url}
                   className={css.img}
-                  alt={cat.breeds[0].name}
+                  alt={cat.breeds[0]?.name || 'Cat'}
+                  onClick={() => openModal(cat)}
                 ></img>
                 <div className={css.content}>
-                  <h3 className={css.name}>{cat.breeds[0].name}</h3>
+                  <h3 className={css.name}>
+                    {cat.breeds[0]?.name || 'Unknown Breed'}
+                  </h3>
 
                   <p className={css.temperament}>
-                    Temperament:{' '}
+                    Temperament:
                     <span className={css.label}>
-                      {cat.breeds[0].temperament}
+                      {cat.breeds[0]?.temperament ||
+                        'Information not available'}
                     </span>
                   </p>
                 </div>
@@ -178,6 +246,29 @@ function Gallery() {
             );
           })}
         </ul>
+        {!showFavorites && (
+          <div className={css.pagination}>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Previous Page
+            </button>
+            <span>
+              Page {currentPage} of {Math.ceil(totalResults / LIMIT)}
+            </span>
+            <button
+              onClick={() =>
+                setCurrentPage((prev) =>
+                  prev < Math.ceil(totalResults / LIMIT) ? prev + 1 : prev
+                )
+              }
+              disabled={currentPage >= Math.ceil(totalResults / LIMIT)}
+            >
+              Next Page
+            </button>
+          </div>
+        )}
       </div>
     </>
   );
